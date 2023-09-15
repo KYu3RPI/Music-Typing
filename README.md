@@ -7,5 +7,5 @@ Doesn't have to be songs, can be anything!
 - Create the sample music file (ABCs)
 - Figure out how to import the file to read and parse
 
-# Done
-- Python game
+# Stack
+- Python
