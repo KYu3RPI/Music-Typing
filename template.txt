@@ -1,0 +1,14 @@
+Song Title
+
+00:00
+Start of the song
+
+00:30
+Next stanza
+
+01:00
+End of song
+
+01:30
+##comments can be added like this ignore this line
+##might take out the ending time? decide after implementing parser. end time can be determine by the audio or video file length. decide later
