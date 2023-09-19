@@ -18,16 +18,19 @@ September
 - Draw up how the main game UI will look like
 - Determine scoring
 - Write the sample music file (ABCs)
+
 October
 - Implement a song object (making sure it follows the OOP principles)
 - Code song file parser
 - Code the base typing game (main gameplay)
 - Write other sample music files (vary in difficulty)
 - Playtesting and balancing
+
 November
 - Implement tutorial to teach proper hand position
 - Implement song directory parser
 - Show list of songs in a select menu
+
 December
 - Finish all the main menus
 - Final playtest and balancing
