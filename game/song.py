@@ -45,6 +45,7 @@ class Song:
 
         # function to print song object
     def printSong(self):
+        print("Input File: " + self.__inputfile)
         print("Title: " + self.__title)
         print("Audio File: " + self.__audio_file)
         print("Lyrics: ")
