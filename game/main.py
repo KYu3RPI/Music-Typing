@@ -9,6 +9,7 @@ clock = pygame.time.Clock()
 mainDir = os.getcwd()
 # go back one directory
 songDir = mainDir + "\songs"
+songs = []
 
 while True:
     # Process player inputs.
@@ -20,9 +21,14 @@ while True:
     
     # BASIC CODE RIGHT NOW, WILL IMPORT ALL THE SONGS IN THE SONG FOLDER LATER
 
-    # create song object
-    song = Song(songDir + "\ABC.txt")
-    # parse from ABC.txt in the song folder
-    song.parseSong()
-    # print the song object
-    song.printSong()
+    # on starup if songs is empty add song!!!!
+    if (not songs):
+        for song in os.listdir(songDir):
+            # create song object
+            songObj = Song(songDir + "\\" + song)
+            # parse from ABC.txt in the song folder
+            songObj.parseSong()
+            # print the song object
+            songObj.printSong()
+            # add song to songs list
+            songs.append(songObj)

@@ -37,6 +37,12 @@ class Song:
                 if int(lines[i].split(":")[0].isnumeric()):
                     self.__lyrics.append(stanza)
                     stanza = []
+                    # get the time of the stanza
+                    time = lines[i].split(":")
+                    # convert the time into seconds
+                    time = int(time[0]) * 60 + int(time[1])
+                    # append the time to the stanza
+                    stanza.append(time)
                 # if it is a lyric then append lyric to stanza
                 else:
                     stanza.append(lines[i])
