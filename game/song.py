@@ -12,7 +12,6 @@ class Song:
 
     def parseSong(self):
         # get a list of lines from the input file and remove empty lines and comment lines
-        print(self.__inputfile)
         with open(self.__inputfile, 'r') as file:
             lines = [line.strip() for line in file if line.strip() and not line.strip().startswith('#')]
         
@@ -58,3 +57,13 @@ class Song:
         for stanza in self.__lyrics:
             print(stanza)
         print("")
+
+    # getters
+    def getTitle(self):
+        return self.__title
+    
+    def getAudioFile(self):
+        return self.__audio_file
+    
+    def getLyrics(self):
+        return self.__lyrics
