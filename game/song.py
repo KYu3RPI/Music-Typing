@@ -6,8 +6,8 @@ class Song:
         self.__title = ""
         self.__artist = ""
         self.__bpm = 0
-        self.__audio_file = ""
-        self.__background_file = ""
+        self.__audio_file = "" # either the file name in the audio folder or a youtube link
+        self.__background_file = (173,216,230)
         self.__lyrics = [] # list of lists, the first value of each list being the time in sec and the rest of the values being the lyrics of the stanza
 
     def parseSong(self):
@@ -48,15 +48,12 @@ class Song:
         # append the last stanza to lyrics
         self.__lyrics.append(stanza)
 
-        # function to print song object
-    def printSong(self):
-        print("Input File: " + self.__inputfile)
-        print("Title: " + self.__title)
-        print("Audio File: " + self.__audio_file)
-        print("Lyrics: ")
+    # to String method
+    def __str__(self):
+        string = "Input File: " + self.__inputfile + "\nTitle: " + self.__title + "\nAudio File: " + self.__audio_file + "\nLyrics: \n"
         for stanza in self.__lyrics:
-            print(stanza)
-        print("")
+            string += str(stanza) + "\n"
+        return string
 
     # getters
     def getTitle(self):
@@ -67,3 +64,6 @@ class Song:
     
     def getLyrics(self):
         return self.__lyrics
+    
+    def getBackgroundFile(self):
+        return self.__background_file

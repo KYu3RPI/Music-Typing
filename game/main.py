@@ -1,10 +1,34 @@
 from song import Song
 from game import Game
 import pygame
+import pygame_menu
 import os
 
-# main
-def main():
+def refresh(songDir):
+    # clear songs list
+    temp = []
+    for song in os.listdir(songDir):
+        # create song object
+        songObj = Song(songDir + "\\" + song)
+        # parse from ABC.txt in the song folder
+        songObj.parseSong()
+
+        # add song to songs list
+        temp.append(songObj)
+
+        # print the song object               for testing purposes
+        print(songObj)
+    return temp
+
+def playGame():
+    # start the game
+    print("Start Game")
+    # start the game
+    game = Game(songs[0])
+    game.startGame()
+
+def main_menu():
+    global songs
     # initialize pygame
     pygame.init()
     screen = pygame.display.set_mode((1280,720))
@@ -13,66 +37,31 @@ def main():
     # light blue color
     screen.fill((173,216,230))
 
-    # THIS WILL BE REPLACED A BUTTON ASSET!!!!
-    # font
-    font = pygame.font.Font('freesansbold.ttf', 32)
-    # text
-    starttext = font.render('Start', True, (160,160,160))
-    refreshtext = font.render('Refresh', True, (160,160,160))
-    # make start and refresh button
-    startbutton = pygame.draw.rect(screen, (0,100,255), (100,100,100,50))
-    refreshbutton = pygame.draw.rect(screen, (0,100,255), (100,200,150,50))
-    # add text to button
-    screen.blit(starttext, (110,110))
-    screen.blit(refreshtext, (110,210))
+    menu = pygame_menu.Menu('Welcome', 1280, 720,
+                       theme=pygame_menu.themes.THEME_BLUE)
+    menu.add.button('Play', playGame)
+    menu.add.button("Refresh", refresh, songDir)
+    menu.add.button('Quit', pygame_menu.events.EXIT)
 
-    # get the current directory
-    mainDir = os.getcwd()
-    # get songs directory
-    songDir = mainDir + "\songs"
-    songs = []
+    menu.mainloop(screen)
     
     while True:
-        # update the display
-        pygame.display.update()
-
         # Process player inputs.
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                print("Quitting")
                 pygame.quit()
                 raise SystemExit
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                # if the button is clicked
-                if startbutton.collidepoint(event.pos):
-                    # start the game
-                    print("Start Game")
-                    # create game object
-                    game = Game(songs[0])
-                    # start the game
-                    game.start()
 
-                if refreshbutton.collidepoint(event.pos):
-                    # refresh the songs list
-                    songs = refresh(songDir)
+        # update the display
+        pygame.display.update()
 
-        # on starup if songs is empty add song!!!!
-        if (songs == []):
-            songs = refresh(songDir)
-
-def refresh(songDir):
-    # clear songs list
-    songs = []
-    for song in os.listdir(songDir):
-        # create song object
-        songObj = Song(songDir + "\\" + song)
-        # parse from ABC.txt in the song folder
-        songObj.parseSong()
-
-        # add song to songs list
-        songs.append(songObj)
-
-        # print the song object               for testing purposes
-        songObj.printSong()
-    return songs
-
-main()
+if __name__ == "__main__":
+    # global variables
+    global song                                  # songs list
+    mainDir = os.getcwd()                       # main directory
+    songDir = mainDir + "\songs"                # song directory
+    audioDir = mainDir + "\audio"               # audio directory (for if the audio file is not a youtube link)
+    songs = refresh(songDir)
+    # start the main menu
+    main_menu()
