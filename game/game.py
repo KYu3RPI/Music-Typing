@@ -6,61 +6,110 @@ class Game:
     def __init__(self, song):
         self.__song = song
         self.__score = 0
-        self.__currentLine = 0
-
-    def startGame(self):
-        # start the display of the game
-        # initialize pygame
-        pygame.init()
-        screen = pygame.display.set_mode((1280,720))
-        pygame.display.set_caption("Music Typing")
-        clock = pygame.time.Clock()
-        # light blue color
-        screen.fill(self.getSong().getBackgroundFile())
-        # button to go back to main
-        backbutton = pygame.draw.rect(screen, (0,100,255), (100,100,100,50))
-        # font
-        font = pygame.font.Font('freesansbold.ttf', 32)
-        # text
-        backtext = font.render('Back', True, (160,160,160))
-        # add text to button
-        screen.blit(backtext, (110,110))
-
-        while True:
-            # update the display
-            pygame.display.update()
-
-            # Process player inputs.
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    print("2")
-                    pygame.quit()
-                    raise SystemExit
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    # if the button is clicked
-                    if backbutton.collidepoint(event.pos):
-                        # go back to main
-                        print("Back to Main")
-                        return
-
-            # update the display
-            pygame.display.update()
-            pass
+        self.__currentStanza = 0 # index of the current stanza
+        self.__currentLetter = 0 # index of the current letter that the player needs to type
+        self.__previousLine = 0 # index of the previous line
+        self.__currentLine = 1 # index of the next line
+        self.__nextLine = 2 # index of the next line
+        self.__mistakes = "" # string of the mistakes made by the player
+        self.__currentwpm = 0
+        self.__avgwpm = 0
+        self.__accuracy = 0 # number of correct letters
+        self.__totalLetters = 0 # total number of letters typed
 
     def updateScore(self):
-        pass
-
-    def endGame(self):
-        pygame.mixer.music.unload()
+        self.__score += 1
 
     def getSong(self):
         return self.__song
     
+    def getSongAudio(self):
+        audio = self.getSong().getAudioFile()
+        if audio.endswith(".mp3"):
+            return audio
+        else:
+            # it is a youtube link so download the audio
+            # for now does nothhing
+            return
+        return
+    
     def getScore(self):
         return self.__score
     
-    def getCurrentLyric(self):
-        return self.__currentLine
+    def getPreviousLyric(self):
+        # if index is -1 then return empty string
+        if self.__previousLine == 0:
+            return ""
+        # else return the previous lyric
+        return self.getSong().getLyrics()[self.__currentStanza][self.__previousLine]
     
+    def getCurrentLyric(self):
+        return self.getSong().getLyrics()[self.__currentStanza][self.__currentLine]
+    
+    def getNextLyric(self):
+        # if out of bounds then return empty string
+        if self.__nextLine >= len(self.__song.getLyrics()[self.__currentStanza]):
+            return ""
+        return self.getSong().getLyrics()[self.__currentStanza][self.__nextLine]
+    
+    # returns the portion of the lyrics that's been typed as a string
+    def getTypedLyric(self):
+        return self.getSong().getLyrics()[self.__currentStanza][self.__currentLine][:self.__currentLetter]
+    
+    def getMistakes(self):
+        return self.__mistakes
+    
+    def getCurrentWPM(self):
+        return self.__currentwpm
+    
+    def getAvgWPM(self):
+        return self.__avgwpm
+    
+    def getAccuracy(self):
+        if self.__totalLetters == 0:
+            return 0
+        return self.__accuracy/self.__totalLetters
+    
+    # function to call when current line is done being typed
+    # returns -1 if the song is over
+    # and a 1 if there is more to type
     def nextLyric(self):
+        # update lines and letter
+        self.__currentLetter = 0
+        self.__previousLine += 1
         self.__currentLine += 1
+        self.__nextLine += 1
+        # check if the stanza is done
+        if len(self.getSong().getLyrics()[self.__currentStanza]) == self.__currentLine:
+            # if it is then update the stanza
+            self.__currentStanza += 1
+            self.__previousLine = 0
+            self.__currentLine = 1
+            self.__nextLine = 2
+        # check if the song is over
+        if len(self.getSong().getLyrics()) == self.__currentStanza:
+            # if it is then return to main
+            return -1
+        return 1
+
+    # function to call when the player types a letter
+    # typedLetter is the unicode of the typed letter
+    def typeLetter(self, typedLetter):
+        self.__totalLetters += 1
+        # check if the letter is correct
+        if self.getCurrentLyric()[self.__currentLetter] == ord(typedLetter):
+            # if it is correct then update accuracy
+            self.__accuracy += 1
+            self.__currentLetter += 1
+            # then check if the line is done being typed
+            if self.__currentLetter == len(self.getSong().getLyrics()[self.__currentStanza][self.__currentLine]):
+                self.nextLyric()
+        else:
+            # the letter is inaccurate so add it to the mistakes
+            self.__mistakes += typedLetter
+
+    # user deletes a mistake letter that they typed
+    # is only called when they are getting rid of a mistake
+    def backspace(self):
+        # remove the last letter from the mistakes
+        self.__mistakes = self.__mistakes[:-1]
