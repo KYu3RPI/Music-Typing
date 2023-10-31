@@ -94,19 +94,26 @@ class Game:
 
     # function to call when the player types a letter
     # typedLetter is the unicode of the typed letter
+    # returns 0 when the line is not done being typed
+    # returns 1 when the line is done being typed
+    # returns -1 when the song is over
     def typeLetter(self, typedLetter):
         self.__totalLetters += 1
         # check if the letter is correct
-        if self.getCurrentLyric()[self.__currentLetter] == ord(typedLetter):
+        #if typedLetter.isalpha():
+        #    print(self.getCurrentLyric()[:(self.__currentLetter + 1)], "|", (self.getTypedLyric() + self.__mistakes + typedLetter))
+        if self.getCurrentLyric()[:(self.__currentLetter + 1)] == (self.getTypedLyric() + self.__mistakes + typedLetter):
             # if it is correct then update accuracy
             self.__accuracy += 1
             self.__currentLetter += 1
+            self.__score += 1
             # then check if the line is done being typed
             if self.__currentLetter == len(self.getSong().getLyrics()[self.__currentStanza][self.__currentLine]):
-                self.nextLyric()
+                return self.nextLyric()
         else:
             # the letter is inaccurate so add it to the mistakes
             self.__mistakes += typedLetter
+        return 0
 
     # user deletes a mistake letter that they typed
     # is only called when they are getting rid of a mistake

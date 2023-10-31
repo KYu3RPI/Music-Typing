@@ -58,17 +58,17 @@ def playGame():
         aWPM = game.getAvgWPM()
         acc = game.getAccuracy()
         score = game.getScore()
-        score = font.render(f"Current WPM: {cWPM} | Average WPM: {aWPM} | Accuracy: {acc} | Score: {score}", True, (255,255,255))
+        score = font.render(f"Current WPM: {cWPM:.2f} | Average WPM: {aWPM:.2f} | Accuracy: {acc:.0%} | Score: {score}", True, (255,255,255))
         screen.blit(score, (25,660))
 
         #get lines
-        previousLine = font.render(game.getPreviousLyric(), True, (173,216,255))
+        previousLine = font.render(game.getPreviousLyric(), True, (192,239,255))
         line = font.render(game.getCurrentLyric(), True, (255,255,255))
-        nextLine = font.render(game.getNextLyric(), True, (173,216,205))
+        nextLine = font.render(game.getNextLyric(), True, (117,146,156))
 
         # get typed line
         typedLine = font.render(game.getTypedLyric(), True, (0,0,0))
-        mistakes = font.render(game.getTypedLyric() + game.getMistakes(), True, (255,0,0))
+        mistakes = font.render(game.getTypedLyric() + game.getMistakes() + "_", True, (255,0,0))
 
         screen.blit(previousLine, (25, 100))
         screen.blit(line, (25, 150))
@@ -97,12 +97,6 @@ def playGame():
                     return
             if event.type == pygame.KEYDOWN:
                 # if the key is pressed
-                if event.key == pygame.K_SPACE:
-                    # if the space key is pressed
-                    print("Space")
-                    game.updateScore()
-                    continue
-
                 # check for backspace
                 if event.key == pygame.K_BACKSPACE:
                     # check if there are mistakes to delete
@@ -110,10 +104,20 @@ def playGame():
                         # delete the last mistake
                         game.backspace()
                         continue
-            
-                # catch every letter that the player is typing
-                # check for capital letters
-                game.typeLetter(event.unicode)
+
+                else:
+                    # catch every letter that the player is typing
+                    # check for capital letters
+                    if event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
+                        continue
+                    cont = game.typeLetter(event.unicode)
+                    if cont == 1:
+                        print("Next Line")
+                    if cont == -1:
+                        print("Song Over")
+                        pygame.mixer.music.stop()
+                        pygame.mixer.music.unload()
+                        return
 
 def main_menu():
     global songs
