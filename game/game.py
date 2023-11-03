@@ -17,9 +17,6 @@ class Game:
         self.__accuracy = 0 # number of correct letters
         self.__totalLetters = 0 # total number of letters typed
 
-    def updateScore(self):
-        self.__score += 1
-
     def getSong(self):
         return self.__song
     
@@ -35,6 +32,20 @@ class Game:
     
     def getScore(self):
         return self.__score
+    
+    def getCurrentWPM(self):
+        return self.__currentwpm
+    
+    def getAvgWPM(self):
+        return self.__avgwpm
+    
+    def getAccuracy(self):
+        if self.__totalLetters == 0:
+            return 0
+        return self.__accuracy/self.__totalLetters
+    
+    def updateScore(self):
+        self.__score += 2 + 3 * self.getAccuracy() + 0.5 * self.getCurrentWPM()
     
     def getPreviousLyric(self):
         # if index is -1 then return empty string
@@ -59,17 +70,8 @@ class Game:
     def getMistakes(self):
         return self.__mistakes
     
-    def getCurrentWPM(self):
-        return self.__currentwpm
-    
-    def getAvgWPM(self):
-        return self.__avgwpm
-    
-    def getAccuracy(self):
-        if self.__totalLetters == 0:
-            return 0
-        return self.__accuracy/self.__totalLetters
-    
+    # typing related functions
+
     # function to call when current line is done being typed
     # returns -1 if the song is over
     # and a 1 if there is more to type
@@ -87,7 +89,7 @@ class Game:
             self.__currentLine = 1
             self.__nextLine = 2
         # check if the song is over
-        if len(self.getSong().getLyrics()) == self.__currentStanza:
+        if len(self.getSong().getLyrics()) - 1 == self.__currentStanza:
             # if it is then return to main
             return -1
         return 1
@@ -106,7 +108,7 @@ class Game:
             # if it is correct then update accuracy
             self.__accuracy += 1
             self.__currentLetter += 1
-            self.__score += 1
+            self.updateScore()
             # then check if the line is done being typed
             if self.__currentLetter == len(self.getSong().getLyrics()[self.__currentStanza][self.__currentLine]):
                 return self.nextLyric()
@@ -120,3 +122,29 @@ class Game:
     def backspace(self):
         # remove the last letter from the mistakes
         self.__mistakes = self.__mistakes[:-1]
+
+    # time related functions
+
+    # function that returns when the current stanza starts
+    def getCurrentStanzaStart(self):
+        return self.getSong().getLyrics()[self.__currentStanza][0]
+
+    # function that returns when the next stanza starts/ current stanza ends
+    def getNextStanzaStart(self):
+        # check if the song is over
+        if self.__currentStanza == len(self.getSong().getLyrics()):
+            # if it is then return -1
+            return -1
+        # else return the start of the next stanza
+        return self.getSong().getLyrics()[self.__currentStanza + 1][0]
+    
+    def nextStanza(self):
+        self.__currentStanza += 1
+        self.__previousLine = 0
+        self.__currentLine = 1
+        self.__nextLine = 2
+        self.__currentLetter = 0
+        self.__mistakes = ""
+        if self.__currentStanza == len(self.getSong().getLyrics()) - 1:
+            return -1
+        return 1

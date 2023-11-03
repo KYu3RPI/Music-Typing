@@ -34,11 +34,21 @@ def playGame():
     pygame.init()
     screen = pygame.display.set_mode((1280,720))
     pygame.display.set_caption("Music Typing")
-    clock = pygame.time.Clock()
 
     audio = game.getSongAudio()
+    
+    setup = True
+    starttime = 0
 
     while True:
+        if setup:
+            # get the start time
+            starttime = pygame.time.get_ticks()
+            # play the music
+            if audio != None:
+                pygame.mixer.music.load(audio)
+                pygame.mixer.music.play()
+
         screen.fill(game.getSong().getBackgroundFile())
         # button to go back to main
         backbuttonPosition = (1180,25,100,50)
@@ -58,66 +68,96 @@ def playGame():
         aWPM = game.getAvgWPM()
         acc = game.getAccuracy()
         score = game.getScore()
-        score = font.render(f"Current WPM: {cWPM:.2f} | Average WPM: {aWPM:.2f} | Accuracy: {acc:.0%} | Score: {score}", True, (255,255,255))
+        score = font.render(f"Current WPM: {cWPM:.2f} | Average WPM: {aWPM:.2f} | Accuracy: {acc:.0%} | Score: {score:.2f}", True, (255,255,255))
         screen.blit(score, (25,660))
 
-        #get lines
-        previousLine = font.render(game.getPreviousLyric(), True, (192,239,255))
-        line = font.render(game.getCurrentLyric(), True, (255,255,255))
-        nextLine = font.render(game.getNextLyric(), True, (117,146,156))
+        # check if it is past start time
+        if pygame.time.get_ticks() - starttime >= game.getCurrentStanzaStart() * 1000:
+            #get lines
+            previousLine = font.render(game.getPreviousLyric(), True, (192,239,255))
+            line = font.render(game.getCurrentLyric(), True, (255,255,255))
+            nextLine = font.render(game.getNextLyric(), True, (117,146,156))
 
-        # get typed line
-        typedLine = font.render(game.getTypedLyric(), True, (0,0,0))
-        mistakes = font.render(game.getTypedLyric() + game.getMistakes() + "_", True, (255,0,0))
+            # get typed line
+            typedLine = font.render(game.getTypedLyric(), True, (0,0,0))
+            mistakes = font.render(game.getTypedLyric() + game.getMistakes(), True, (255,0,0))
+            cursor = font.render(game.getTypedLyric() + game.getMistakes() + "_", True, (0,0,0))
 
-        screen.blit(previousLine, (25, 100))
-        screen.blit(line, (25, 150))
-        screen.blit(nextLine, (25, 200))
-        screen.blit(mistakes, (25, 150))
-        screen.blit(typedLine, (25, 150))
+            screen.blit(previousLine, (25, 100))
+            screen.blit(line, (25, 150))
+            screen.blit(nextLine, (25, 200))
+            screen.blit(cursor, (25, 150))
+            screen.blit(mistakes, (25, 150))
+            screen.blit(typedLine, (25, 150))
+
+            pygame.display.update()
+
+            # check if time is up for current stanza
+            if pygame.time.get_ticks() - starttime >= game.getNextStanzaStart() * 1000:
+                # if it is then go to the next stanza
+                cont = game.nextStanza()
+                if cont == 1:
+                    print("Next Stanza")
+                if cont == -1: # last stanza
+                    print("Song Over")
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.unload()
+                    return
+
+            # Process player inputs.
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    close()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    # if the button is clicked
+                    if backbutton.collidepoint(event.pos):
+                        # go back to main
+                        pygame.mixer.music.stop()
+                        pygame.mixer.music.unload()
+                        print("Back to Main")
+                        return
+                if event.type == pygame.KEYDOWN:
+                    # if the key is pressed
+                    # check for backspace
+                    if event.key == pygame.K_BACKSPACE:
+                        # check if there are mistakes to delete
+                        if len(game.getMistakes()) > 0:
+                            # delete the last mistake
+                            game.backspace()
+                            continue
+
+                    else:
+                        # catch every letter that the player is typing
+                        # check for capital letters
+                        if event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
+                            continue
+                        cont = game.typeLetter(event.unicode)
+                        if cont == 1:
+                            print("Next Line")
+                            # delay the line until the next stanza starts
+                        if cont == -1:
+                            print("Song Over")
+                            pygame.mixer.music.stop()
+                            pygame.mixer.music.unload()
+                            return
+                        # change this so that the game doesn't end immediately and instead waits until the song is over before going to a final score menu
+                        # another while loop until it ends?
 
         pygame.display.update()
 
-        # play the music
-        if audio != None:
-            pygame.mixer.music.load(audio)
-            pygame.mixer.music.play()
-
-        # Process player inputs.
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                close()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                # if the button is clicked
-                if backbutton.collidepoint(event.pos):
-                    # go back to main
-                    pygame.mixer.music.stop()
-                    pygame.mixer.music.unload()
-                    print("Back to Main")
-                    return
-            if event.type == pygame.KEYDOWN:
-                # if the key is pressed
-                # check for backspace
-                if event.key == pygame.K_BACKSPACE:
-                    # check if there are mistakes to delete
-                    if len(game.getMistakes()) > 0:
-                        # delete the last mistake
-                        game.backspace()
-                        continue
-
-                else:
-                    # catch every letter that the player is typing
-                    # check for capital letters
-                    if event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
-                        continue
-                    cont = game.typeLetter(event.unicode)
-                    if cont == 1:
-                        print("Next Line")
-                    if cont == -1:
-                        print("Song Over")
+        if pygame.time.get_ticks() - starttime < game.getCurrentStanzaStart() * 1000:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    close()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    # if the button is clicked
+                    if backbutton.collidepoint(event.pos):
+                        # go back to main
                         pygame.mixer.music.stop()
                         pygame.mixer.music.unload()
+                        print("Back to Main")
                         return
+        setup = False
 
 def main_menu():
     global songs
@@ -133,7 +173,8 @@ def main_menu():
     mytheme.title_font = pygame_menu.font.FONT_OPEN_SANS_BOLD
     mytheme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_SIMPLE
     menu = pygame_menu.Menu('Music Typing', 1280, 720, theme=mytheme)
-    menu.add.button('Play', playGame)
+    if len(songs) == 1:
+        menu.add.button('Play', playGame)
     menu.add.button("Refresh", refresh, songDir)
     menu.add.button('Quit', close)
 
