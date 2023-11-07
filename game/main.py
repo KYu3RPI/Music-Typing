@@ -25,6 +25,20 @@ def refresh(songDir):
         print(songObj)
     return temp
 
+def endMenu(game):
+    # result screen when game is over
+    pygame.init()
+    screen = pygame.display.set_mode((1280,720))
+    pygame.display.set_caption("Music Typing")
+
+    # get information about game
+    songname = game.getSong().getTitle()
+    score = game.getScore()
+    avgWPM = game.getAvgWPM()
+    accuracy = game.getAccuracy()
+    totalTyped = game.getTotalLetters()
+
+
 def playGame():
     # start the game
     print("Start Game")
@@ -39,6 +53,8 @@ def playGame():
     
     setup = True
     starttime = 0
+    timercont = 1
+    typecont = 1
 
     while True:
         if setup:
@@ -53,35 +69,54 @@ def playGame():
         # button to go back to main
         backbuttonPosition = (1180,25,100,50)
         backbutton = pygame.draw.rect(screen, (0,150,200), backbuttonPosition)
-        font = pygame.font.Font('freesansbold.ttf', 32)
+        mainfont = pygame.font.Font('freesansbold.ttf', 32)
+        gamefont = pygame.font.Font('freesansbold.ttf', 48)
         # text
-        backtext = font.render('Back', True, (255,255,255))
+        backtext = mainfont.render('Back', True, (255,255,255))
         # add text to button
         screen.blit(backtext, (backbutton[0] + 10, backbutton[1] + 10))
 
         # rest of ui
         # title of song
-        title = font.render(game.getSong().getTitle(), True, (255,255,255))
+        title = mainfont.render(game.getSong().getTitle(), True, (255,255,255))
         screen.blit(title, (25,25))
         # score information
         cWPM = game.getCurrentWPM()
         aWPM = game.getAvgWPM()
         acc = game.getAccuracy()
         score = game.getScore()
-        score = font.render(f"Current WPM: {cWPM:.2f} | Average WPM: {aWPM:.2f} | Accuracy: {acc:.0%} | Score: {score:.2f}", True, (255,255,255))
+        score = mainfont.render(f"Current WPM: {cWPM:.2f} | Average WPM: {aWPM:.2f} | Accuracy: {acc:.0%} | Score: {score:.2f}", True, (255,255,255))
         screen.blit(score, (25,660))
 
         # check if it is past start time
         if pygame.time.get_ticks() - starttime >= game.getCurrentStanzaStart() * 1000:
+            # check if time is up for current stanza
+            if typecont == -1:
+                print("Song Over")
+                pygame.mixer.music.stop()
+                pygame.mixer.music.unload()
+                return
+            
+            if pygame.time.get_ticks() - starttime >= game.getNextStanzaStart() * 1000:
+                # if it is then go to the next stanza
+                timercont = game.nextStanza()
+                if timercont == 1:
+                    print("Next Stanza")
+                if timercont == -1: # last stanza
+                    print("Song Time Over")
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.unload()
+                    return
+
             #get lines
-            previousLine = font.render(game.getPreviousLyric(), True, (192,239,255))
-            line = font.render(game.getCurrentLyric(), True, (255,255,255))
-            nextLine = font.render(game.getNextLyric(), True, (117,146,156))
+            previousLine = gamefont.render(game.getPreviousLyric(), True, (192,239,255))
+            line = gamefont.render(game.getCurrentLyric(), True, (255,255,255))
+            nextLine = gamefont.render(game.getNextLyric(), True, (117,146,156))
 
             # get typed line
-            typedLine = font.render(game.getTypedLyric(), True, (0,0,0))
-            mistakes = font.render(game.getTypedLyric() + game.getMistakes(), True, (255,0,0))
-            cursor = font.render(game.getTypedLyric() + game.getMistakes() + "_", True, (0,0,0))
+            typedLine = gamefont.render(game.getTypedLyric(), True, (0,0,0))
+            mistakes = gamefont.render(game.getTypedLyric() + game.getMistakes(), True, (255,0,0))
+            cursor = gamefont.render(game.getTypedLyric() + game.getMistakes() + "_", True, (0,0,0))
 
             screen.blit(previousLine, (25, 100))
             screen.blit(line, (25, 150))
@@ -91,18 +126,6 @@ def playGame():
             screen.blit(typedLine, (25, 150))
 
             pygame.display.update()
-
-            # check if time is up for current stanza
-            if pygame.time.get_ticks() - starttime >= game.getNextStanzaStart() * 1000:
-                # if it is then go to the next stanza
-                cont = game.nextStanza()
-                if cont == 1:
-                    print("Next Stanza")
-                if cont == -1: # last stanza
-                    print("Song Over")
-                    pygame.mixer.music.stop()
-                    pygame.mixer.music.unload()
-                    return
 
             # Process player inputs.
             for event in pygame.event.get():
@@ -125,23 +148,17 @@ def playGame():
                             # delete the last mistake
                             game.backspace()
                             continue
-
                     else:
                         # catch every letter that the player is typing
                         # check for capital letters
                         if event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
                             continue
-                        cont = game.typeLetter(event.unicode)
-                        if cont == 1:
+                        typecont = game.typeLetter(event.unicode)
+                        if typecont == 1:
                             print("Next Line")
                             # delay the line until the next stanza starts
-                        if cont == -1:
-                            print("Song Over")
-                            pygame.mixer.music.stop()
-                            pygame.mixer.music.unload()
-                            return
-                        # change this so that the game doesn't end immediately and instead waits until the song is over before going to a final score menu
-                        # another while loop until it ends?
+                        if typecont == -1:
+                            print("Song Typing Over")
 
         pygame.display.update()
 

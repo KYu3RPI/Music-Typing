@@ -44,6 +44,9 @@ class Game:
             return 0
         return self.__accuracy/self.__totalLetters
     
+    def getTotalLetters(self):
+        return self.__totalLetters
+    
     def updateScore(self):
         self.__score += 2 + 3 * self.getAccuracy() + 0.5 * self.getCurrentWPM()
     

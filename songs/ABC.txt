@@ -2,7 +2,7 @@ ABC
 #LINK TO VIDEO!!!!!!!!!!!!!!
 https://www.youtube.com/watch?v=0ZEX_l0bUw0
 
-00:01
+00:00
 A B C D E F G
 
 00:07
@@ -24,4 +24,4 @@ Y and Z
 Now I know my ABCs
 Next time won't you sing with me
 
-01:27
+00:37
