@@ -10,6 +10,7 @@ def close():
     raise SystemExit
 
 def refresh(songDir):
+    global songs
     # clear songs list
     temp = []
     for song in os.listdir(songDir):
@@ -23,13 +24,34 @@ def refresh(songDir):
 
         # print the song object               for testing purposes
         print(songObj)
-    return temp
+    songs = temp
 
-def endMenu(game):
+def set_Song(value, num):
+    global songs
+    global index
+    index = num
+    if index < 0:
+        index = 0
+    if index >= len(songs):
+        index = len(songs) - 1
+    song = songs[index].getTitle()
+
+def result(game):
     # result screen when game is over
     pygame.init()
     screen = pygame.display.set_mode((1280,720))
     pygame.display.set_caption("Music Typing")
+    backbuttonPosition = (1180,25,100,50)
+    backbutton = pygame.draw.rect(screen, (0,150,200), backbuttonPosition)
+    mainfont = pygame.font.Font('freesansbold.ttf', 32)
+    titlefont = pygame.font.Font('freesansbold.ttf', 48)
+    backtext = mainfont.render('Back', True, (255,255,255))
+    screen.blit(backtext, (backbutton[0] + 10, backbutton[1] + 10))
+
+    # title of song
+    title = titlefont.render(game.getSong().getTitle(), True, (255,255,255))
+    text_rect = title.get_rect(center=(1280/2, 720 - 600))
+    screen.blit(title, text_rect)
 
     # get information about game
     songname = game.getSong().getTitle()
@@ -38,11 +60,27 @@ def endMenu(game):
     accuracy = game.getAccuracy()
     totalTyped = game.getTotalLetters()
 
+    # display information
+    pygame.display.update()
+    
+    while True:
+
+        # Process player inputs.
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                close()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # if the button is clicked
+                if backbutton.collidepoint(event.pos):
+                    # go back to main
+                    print("Back to Main")
+                    return
 
 def playGame():
+    global index
     # start the game
     print("Start Game")
-    game = Game(songs[0])
+    game = Game(songs[index])
 
     # start the display of the game
     pygame.init()
@@ -95,6 +133,7 @@ def playGame():
                 print("Song Over")
                 pygame.mixer.music.stop()
                 pygame.mixer.music.unload()
+                result(game)
                 return
             
             if pygame.time.get_ticks() - starttime >= game.getNextStanzaStart() * 1000:
@@ -106,6 +145,7 @@ def playGame():
                     print("Song Time Over")
                     pygame.mixer.music.stop()
                     pygame.mixer.music.unload()
+                    result(game)
                     return
 
             #get lines
@@ -151,9 +191,9 @@ def playGame():
                     else:
                         # catch every letter that the player is typing
                         # check for capital letters
-                        if event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
+                        if event.unicode == "":
                             continue
-                        typecont = game.typeLetter(event.unicode)
+                        typecont = game.typeLetter(event.unicode, pygame.time.get_ticks()/1000.0 - game.getCurrentStanzaStart())
                         if typecont == 1:
                             print("Next Line")
                             # delay the line until the next stanza starts
@@ -178,6 +218,7 @@ def playGame():
 
 def main_menu():
     global songs
+    global index
     # initialize pygame
     pygame.init()
     screen = pygame.display.set_mode((1280,720))
@@ -190,8 +231,8 @@ def main_menu():
     mytheme.title_font = pygame_menu.font.FONT_OPEN_SANS_BOLD
     mytheme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_SIMPLE
     menu = pygame_menu.Menu('Music Typing', 1280, 720, theme=mytheme)
-    if len(songs) == 1:
-        menu.add.button('Play', playGame)
+    menu.add.button('Play', playGame)
+    menu.add.selector('Song: ', [(songs[i].getTitle(), i) for i in range(len(songs))], onreturn=playGame, onchange=set_Song)
     menu.add.button("Refresh", refresh, songDir)
     menu.add.button('Quit', close)
 
@@ -208,10 +249,11 @@ def main_menu():
 
 if __name__ == "__main__":
     # global variables
-    global song                                  # songs list
+    global songs                                # songs list
     mainDir = os.getcwd()                       # main directory
     songDir = mainDir + "\songs"                # song directory
     audioDir = mainDir + "\audio"               # audio directory (for if the audio file is not a youtube link)
-    songs = refresh(songDir)
+    refresh(songDir)
+    global index
     # start the main menu
     main_menu()

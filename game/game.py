@@ -13,6 +13,7 @@ class Game:
         self.__nextLine = 2 # index of the next line
         self.__mistakes = "" # string of the mistakes made by the player
         self.__currentwpm = 0
+        self.__wpms = []
         self.__avgwpm = 0
         self.__accuracy = 0 # number of correct letters
         self.__totalLetters = 0 # total number of letters typed
@@ -102,8 +103,11 @@ class Game:
     # returns 0 when the line is not done being typed
     # returns 1 when the line is done being typed
     # returns -1 when the song is over
-    def typeLetter(self, typedLetter):
+    def typeLetter(self, typedLetter, time):
         self.__totalLetters += 1
+        self.__currentwpm = (self.__totalLetters / 5.0) / (time / 60)
+        self.__wpms.append(self.__currentwpm)
+        self.__avgwpm = sum(self.__wpms) / len(self.__wpms)
         # check if the letter is correct
         #if typedLetter.isalpha():
         #    print(self.getCurrentLyric()[:(self.__currentLetter + 1)], "|", (self.getTypedLyric() + self.__mistakes + typedLetter))
