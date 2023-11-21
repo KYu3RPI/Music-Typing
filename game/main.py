@@ -216,6 +216,35 @@ def playGame():
                         return
         setup = False
 
+def select():
+    global songs
+    global index
+
+    pygame.init()
+    screen = pygame.display.set_mode((1280,720))
+    pygame.display.set_caption("Music Typing")
+
+    mytheme = pygame_menu.themes.THEME_BLUE.copy()
+    mytheme.background_color=(173,216,230)
+    mytheme.widget_font = pygame_menu.font.FONT_OPEN_SANS_BOLD
+    mytheme.title_font = pygame_menu.font.FONT_OPEN_SANS_BOLD
+    mytheme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_SIMPLE
+    menu = pygame_menu.Menu('Select', 1280, 720, theme=mytheme)
+    menu.add.button('Play', playGame)
+    menu.add.selector('Song: ', [(songs[i].getTitle(), i) for i in range(len(songs))], onchange=set_Song)
+    menu.add.button('Back', main_menu)
+
+    menu.mainloop(screen)
+    
+    while True:
+        # Process player inputs.
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                close()
+
+        # update the display
+        pygame.display.update()
+
 def main_menu():
     global songs
     global index
@@ -223,7 +252,6 @@ def main_menu():
     pygame.init()
     screen = pygame.display.set_mode((1280,720))
     pygame.display.set_caption("Music Typing")
-    clock = pygame.time.Clock()
 
     mytheme = pygame_menu.themes.THEME_BLUE.copy()
     mytheme.background_color=(173,216,230)
@@ -231,8 +259,7 @@ def main_menu():
     mytheme.title_font = pygame_menu.font.FONT_OPEN_SANS_BOLD
     mytheme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_SIMPLE
     menu = pygame_menu.Menu('Music Typing', 1280, 720, theme=mytheme)
-    menu.add.button('Play', playGame)
-    menu.add.selector('Song: ', [(songs[i].getTitle(), i) for i in range(len(songs))], onreturn=playGame, onchange=set_Song)
+    menu.add.button('Start', select)
     menu.add.button("Refresh", refresh, songDir)
     menu.add.button('Quit', close)
 
