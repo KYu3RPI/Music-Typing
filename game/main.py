@@ -4,6 +4,10 @@ import pygame
 import pygame_menu
 import os
 
+songs = []
+index = 0
+mainDir = os.getcwd()
+
 def close():
     print("Quitting")
     pygame.quit()
@@ -40,6 +44,7 @@ def result(game):
     # result screen when game is over
     pygame.init()
     screen = pygame.display.set_mode((1280,720))
+    screen.fill((173,216,230))
     pygame.display.set_caption("Music Typing")
     backbuttonPosition = (1180,25,100,50)
     backbutton = pygame.draw.rect(screen, (0,150,200), backbuttonPosition)
@@ -54,11 +59,14 @@ def result(game):
     screen.blit(title, text_rect)
 
     # get information about game
-    songname = game.getSong().getTitle()
-    score = game.getScore()
-    avgWPM = game.getAvgWPM()
-    accuracy = game.getAccuracy()
-    totalTyped = game.getTotalLetters()
+    score = mainfont.render(f"Score: {game.getScore():.2f}", True, (255,255,255))
+    screen.blit(score, score.get_rect(center=(1280/2, 720 - 550)))
+    avgWPM = mainfont.render(f"Average WPM: {game.getAvgWPM(): .2f}", True, (255,255,255))
+    screen.blit(avgWPM, avgWPM.get_rect(center=(1280/2, 720 - 500)))
+    accuracy = mainfont.render(f"Accuracy: {game.getAccuracy():.0%}", True, (255,255,255))
+    screen.blit(accuracy, accuracy.get_rect(center=(1280/2, 720 - 450)))
+    totalTyped = mainfont.render(f"Total letters typed: {game.getTotalLetters():.0f}", True, (255,255,255))
+    screen.blit(totalTyped, totalTyped.get_rect(center=(1280/2, 720 - 400)))
 
     # display information
     pygame.display.update()
@@ -78,6 +86,7 @@ def result(game):
 
 def playGame():
     global index
+    global mainDir
     # start the game
     print("Start Game")
     game = Game(songs[index])
@@ -86,6 +95,14 @@ def playGame():
     pygame.init()
     screen = pygame.display.set_mode((1280,720))
     pygame.display.set_caption("Music Typing")
+    mainfont = pygame.font.Font('freesansbold.ttf', 32)
+    gamefont = pygame.font.Font('freesansbold.ttf', 48)
+    # button to go back to main
+    backbuttonPosition = (1180,25,100,50)
+    backtext = mainfont.render('Back', True, (255,255,255))
+
+    # title of song
+    title = mainfont.render(game.getSong().getTitle(), True, (255,255,255))
 
     audio = game.getSongAudio()
     
@@ -100,23 +117,15 @@ def playGame():
             starttime = pygame.time.get_ticks()
             # play the music
             if audio != None:
-                pygame.mixer.music.load(audio)
+                pygame.mixer.music.load(mainDir + "\\audio\\" + audio)
                 pygame.mixer.music.play()
 
         screen.fill(game.getSong().getBackgroundFile())
-        # button to go back to main
-        backbuttonPosition = (1180,25,100,50)
         backbutton = pygame.draw.rect(screen, (0,150,200), backbuttonPosition)
-        mainfont = pygame.font.Font('freesansbold.ttf', 32)
-        gamefont = pygame.font.Font('freesansbold.ttf', 48)
-        # text
-        backtext = mainfont.render('Back', True, (255,255,255))
         # add text to button
         screen.blit(backtext, (backbutton[0] + 10, backbutton[1] + 10))
 
         # rest of ui
-        # title of song
-        title = mainfont.render(game.getSong().getTitle(), True, (255,255,255))
         screen.blit(title, (25,25))
         # score information
         cWPM = game.getCurrentWPM()
@@ -145,6 +154,24 @@ def playGame():
                     print("Song Time Over")
                     pygame.mixer.music.stop()
                     pygame.mixer.music.unload()
+                    
+                    screen.fill(game.getSong().getBackgroundFile())
+                    backbutton = pygame.draw.rect(screen, (0,150,200), backbuttonPosition)
+                    # add text to button
+                    screen.blit(backtext, (backbutton[0] + 10, backbutton[1] + 10))
+
+                    # rest of ui
+                    screen.blit(title, (25,25))
+                    # score information
+                    cWPM = game.getCurrentWPM()
+                    aWPM = game.getAvgWPM()
+                    acc = game.getAccuracy()
+                    score = game.getScore()
+                    score = mainfont.render(f"Current WPM: {cWPM:.2f} | Average WPM: {aWPM:.2f} | Accuracy: {acc:.0%} | Score: {score:.2f}", True, (255,255,255))
+                    screen.blit(score, (25,660))
+                    pygame.display.update()
+
+                    pygame.time.wait(2000)
                     result(game)
                     return
 
@@ -248,6 +275,7 @@ def select():
 def main_menu():
     global songs
     global index
+    global mainDir
     # initialize pygame
     pygame.init()
     screen = pygame.display.set_mode((1280,720))
@@ -260,7 +288,7 @@ def main_menu():
     mytheme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_SIMPLE
     menu = pygame_menu.Menu('Music Typing', 1280, 720, theme=mytheme)
     menu.add.button('Start', select)
-    menu.add.button("Refresh", refresh, songDir)
+    menu.add.button("Refresh", refresh, mainDir + "\songs")
     menu.add.button('Quit', close)
 
     menu.mainloop(screen)
@@ -275,12 +303,6 @@ def main_menu():
         pygame.display.update()
 
 if __name__ == "__main__":
-    # global variables
-    global songs                                # songs list
-    mainDir = os.getcwd()                       # main directory
-    songDir = mainDir + "\songs"                # song directory
-    audioDir = mainDir + "\audio"               # audio directory (for if the audio file is not a youtube link)
-    refresh(songDir)
-    global index
+    refresh(mainDir + "\songs")
     # start the main menu
     main_menu()

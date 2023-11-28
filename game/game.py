@@ -1,5 +1,6 @@
 import pygame
 from song import Song
+import youtube_dl
 
 # Game class that controls the vars in the game
 class Game:
@@ -23,13 +24,11 @@ class Game:
     
     def getSongAudio(self):
         audio = self.getSong().getAudioFile()
-        if audio.endswith(".mp3"):
+        if audio.endswith(".mp3") or audio.endswith(".ogg"):
             return audio
         else:
-            # it is a youtube link so download the audio
-            # for now does nothhing
+            # does nothing for now
             return
-        return
     
     def getScore(self):
         return self.__score
