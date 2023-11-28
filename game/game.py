@@ -1,6 +1,4 @@
-import pygame
 from song import Song
-import youtube_dl
 
 # Game class that controls the vars in the game
 class Game:
